@@ -1,0 +1,48 @@
+@model CompareFacesViewModel
+@{
+    ViewData["Title"] = "Порівняння облич";
+}
+<h1>Порівняння облич</h1>
+<p>Завантажте два портрети, щоб оцінити схожість облич через AWS Rekognition.</p>
+<p class="hint">JPEG або PNG, до 5 МіБ кожне, до 20 мегапікселів. Фото перевіряються на яскравість і чіткість, потім надсилаються до AWS. Застосунок не зберігає фото на диску.</p>
+<form asp-controller="Home" asp-action="Index" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All" role="alert"></div>
+    <div class="photos">
+        <div class="photo">
+            <label asp-for="FirstPhoto"></label>
+            <input asp-for="FirstPhoto" type="file" accept="image/jpeg,image/png" required />
+            @if (Model.FirstQuality is { } first)
+            {
+                <p>Яскравість: @first.Brightness.ToString("F2") · Чіткість: @first.Sharpness.ToString("F2")</p>
+            }
+        </div>
+        <div class="photo">
+            <label asp-for="SecondPhoto"></label>
+            <input asp-for="SecondPhoto" type="file" accept="image/jpeg,image/png" required />
+            @if (Model.SecondQuality is { } second)
+            {
+                <p>Яскравість: @second.Brightness.ToString("F2") · Чіткість: @second.Sharpness.ToString("F2")</p>
+            }
+        </div>
+    </div>
+    <button type="submit">Порівняти обличчя</button>
+</form>
+@if (Model.Compared)
+{
+    <section class="result" role="status">
+        <h2>Результат</h2>
+        @if (Model.Similarity.HasValue)
+        {
+            <p class="score">Схожість: @Model.Similarity.Value.ToString("F2")%</p>
+            <p>Це оцінка схожості моделі, а не підтвердження особи.</p>
+        }
+        else
+        {
+            <p>Відповідного обличчя не знайдено.</p>
+        }
+    </section>
+}
+@if (Context.Request.Method == "POST")
+{
+    <p class="hint">Для наступної спроби оберіть обидва файли знову.</p>
+}

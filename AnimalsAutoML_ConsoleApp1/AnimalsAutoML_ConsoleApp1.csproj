@@ -1,18 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
-    <PackageReference Include="Microsoft.ML.Vision" Version="3.0.1" />
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.3.1" />
+    <PackageReference Include="AWSSDK.Rekognition" Version="4.0.100.14" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="4.1.2" />
   </ItemGroup>
-  <ItemGroup Label="AnimalsAutoML">
-    <None Include="AnimalsAutoML.mlnet">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
   </ItemGroup>
 </Project>
