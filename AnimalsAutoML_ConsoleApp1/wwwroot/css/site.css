@@ -8,6 +8,7 @@ p { line-height: 1.6; }
 .photo { padding: 20px; border: 1px solid #cbd3df; border-radius: 10px; }
 label { display: block; font-weight: 600; margin-bottom: 14px; }
 input { max-width: 100%; }
+input[type="url"] { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #9aa8bd; border-radius: 6px; font: inherit; }
 button { background: #2458ba; color: white; padding: 12px 22px; border: 0; border-radius: 8px; font: inherit; cursor: pointer; }
 button:hover { background: #1b448f; }
 :focus-visible { outline: 3px solid #bc7400; outline-offset: 4px; }

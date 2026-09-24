@@ -8,6 +8,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
     options.MemoryBufferThreshold = 11 * 1024 * 1024);
 builder.Services.AddSingleton<ImageQualityService>();
 builder.Services.AddScoped<RekognitionService>();
+builder.Services.AddSingleton<IImageUrlDownloader, ImageUrlDownloader>();
 builder.Services.AddSingleton<IAmazonRekognition>(_ => new AmazonRekognitionClient(
     AccessTokens.AwsAccessKeyId,
     AccessTokens.AwsSecretAccessKey,
@@ -22,3 +23,4 @@ app.UseStaticFiles();
 app.UseRouting();
 app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
 app.Run();
+

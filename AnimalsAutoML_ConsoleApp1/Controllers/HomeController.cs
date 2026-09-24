@@ -6,7 +6,7 @@ using SixLabors.ImageSharp;
 
 namespace AnimalsAutoML_ConsoleApp1.Controllers;
 
-public class HomeController(ImageQualityService qualityService, IServiceProvider services,
+public class HomeController(ImageQualityService qualityService, IServiceProvider services, IImageUrlDownloader urlDownloader,
     ILogger<HomeController> logger) : Controller
 {
     private const int MaxPhotoBytes = 5 * 1024 * 1024;
@@ -21,8 +21,8 @@ public class HomeController(ImageQualityService qualityService, IServiceProvider
     public async Task<IActionResult> Index(CompareFacesViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return View(model);
-        var first = await ReadPhotoAsync(model.FirstPhoto!, nameof(model.FirstPhoto), cancellationToken);
-        var second = await ReadPhotoAsync(model.SecondPhoto!, nameof(model.SecondPhoto), cancellationToken);
+        var first = await ReadPhotoAsync(model.FirstPhoto, model.FirstPhotoUrl, "Перше фото", cancellationToken);
+        var second = await ReadPhotoAsync(model.SecondPhoto, model.SecondPhotoUrl, "Друге фото", cancellationToken);
         if (!ModelState.IsValid) return View(model);
         model.FirstQuality = qualityService.CheckQuality(first!);
         model.SecondQuality = qualityService.CheckQuality(second!);
@@ -31,7 +31,6 @@ public class HomeController(ImageQualityService qualityService, IServiceProvider
         if (!ModelState.IsValid) return View(model);
         try
         {
-            // Resolve AWS after local validation so the page works without credentials.
             var rekognition = services.GetRequiredService<RekognitionService>();
             model.Similarity = await rekognition.CompareFacesAsync(first!, second!, cancellationToken);
             model.Compared = true;
@@ -54,21 +53,26 @@ public class HomeController(ImageQualityService qualityService, IServiceProvider
         return View(model);
     }
 
-    private async Task<byte[]?> ReadPhotoAsync(IFormFile file, string field, CancellationToken cancellationToken)
+    private async Task<byte[]?> ReadPhotoAsync(IFormFile? file, string? url, string field, CancellationToken cancellationToken)
     {
-        if (file.Length == 0 || file.Length > MaxPhotoBytes)
-        {
-            ModelState.AddModelError(field, "Фото має бути непорожнім і не перевищувати 5 МіБ.");
-            return null;
-        }
-        using var stream = new MemoryStream();
-        await file.CopyToAsync(stream, cancellationToken);
-        var bytes = stream.ToArray();
         try
         {
+            byte[] bytes;
+            if (file is not null)
+            {
+                if (file.Length == 0 || file.Length > MaxPhotoBytes)
+                    throw new InvalidDataException("Фото має бути непорожнім і не перевищувати 5 МіБ.");
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream, cancellationToken);
+                bytes = stream.ToArray();
+            }
+            else
+            {
+                bytes = await urlDownloader.DownloadAsync(url?.Trim() ?? "", cancellationToken);
+            }
             var info = SixLabors.ImageSharp.Image.Identify(bytes);
             if (info.Metadata.DecodedImageFormat?.Name is not ("JPEG" or "PNG"))
-                throw new InvalidDataException();
+                throw new InvalidDataException("Потрібне пряме посилання на JPEG/PNG або файл зображення, а не вебсторінка.");
             if (info.Width < 2 || info.Height < 2 || (long)info.Width * info.Height > 20_000_000)
             {
                 ModelState.AddModelError(field, "Розміри фото: щонайменше 2 × 2 пікселі та не більше 20 мегапікселів.");
@@ -77,9 +81,14 @@ public class HomeController(ImageQualityService qualityService, IServiceProvider
             using var decoded = SixLabors.ImageSharp.Image.Load(bytes);
             return bytes;
         }
-        catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException or InvalidDataException or NotSupportedException)
+        catch (InvalidDataException ex)
         {
-            ModelState.AddModelError(field, "Завантажте коректне зображення JPEG або PNG.");
+            ModelState.AddModelError(string.Empty, $"{field}: {ex.Message}");
+            return null;
+        }
+        catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
+        {
+            ModelState.AddModelError(string.Empty, $"{field}: потрібне коректне зображення JPEG/PNG. Посилання на вебсторінку не підходить.");
             return null;
         }
     }

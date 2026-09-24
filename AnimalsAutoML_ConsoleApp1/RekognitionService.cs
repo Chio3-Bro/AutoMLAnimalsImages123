@@ -18,3 +18,4 @@ public class RekognitionService(IAmazonRekognition client)
         return response.FaceMatches?.OrderByDescending(match => match.Similarity).FirstOrDefault()?.Similarity;
     }
 }
+

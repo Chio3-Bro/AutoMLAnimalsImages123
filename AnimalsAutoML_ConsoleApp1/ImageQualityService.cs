@@ -28,10 +28,7 @@ namespace AnimalsAutoML_ConsoleApp1
                 CalculateSharpness(image);
 
             bool tooDark = brightness < 45;
-
-            // Порог специально снижен,
-            // чтобы нормальные портреты не считались размытыми
-            bool blurry = sharpness < 5;
+            bool blurry = sharpness < 1.5;
 
             return new ImageQualityResult
             {

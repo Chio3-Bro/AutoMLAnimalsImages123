@@ -3,14 +3,15 @@
     ViewData["Title"] = "Порівняння облич";
 }
 <h1>Порівняння облич</h1>
-<p>Завантажте два портрети, щоб оцінити схожість облич через AWS Rekognition.</p>
-<p class="hint">JPEG або PNG, до 5 МіБ кожне, до 20 мегапікселів. Фото перевіряються на яскравість і чіткість, потім надсилаються до AWS. Застосунок не зберігає фото на диску.</p>
 <form asp-controller="Home" asp-action="Index" method="post" enctype="multipart/form-data">
     <div asp-validation-summary="All" role="alert"></div>
     <div class="photos">
         <div class="photo">
             <label asp-for="FirstPhoto"></label>
-            <input asp-for="FirstPhoto" type="file" accept="image/jpeg,image/png" required />
+            <input asp-for="FirstPhoto" type="file" accept="image/jpeg,image/png" />
+            <p class="hint">або</p>
+            <label asp-for="FirstPhotoUrl"></label>
+            <input asp-for="FirstPhotoUrl" type="url" placeholder="https://example.com/portrait.jpg" />
             @if (Model.FirstQuality is { } first)
             {
                 <p>Яскравість: @first.Brightness.ToString("F2") · Чіткість: @first.Sharpness.ToString("F2")</p>
@@ -18,7 +19,10 @@
         </div>
         <div class="photo">
             <label asp-for="SecondPhoto"></label>
-            <input asp-for="SecondPhoto" type="file" accept="image/jpeg,image/png" required />
+            <input asp-for="SecondPhoto" type="file" accept="image/jpeg,image/png" />
+            <p class="hint">або</p>
+            <label asp-for="SecondPhotoUrl"></label>
+            <input asp-for="SecondPhotoUrl" type="url" placeholder="https://example.com/portrait.jpg" />
             @if (Model.SecondQuality is { } second)
             {
                 <p>Яскравість: @second.Brightness.ToString("F2") · Чіткість: @second.Sharpness.ToString("F2")</p>
@@ -44,5 +48,5 @@
 }
 @if (Context.Request.Method == "POST")
 {
-    <p class="hint">Для наступної спроби оберіть обидва файли знову.</p>
+    <p class="hint">Посилання збережено у формі. Якщо використовували файли, для повторної спроби оберіть їх знову.</p>
 }
